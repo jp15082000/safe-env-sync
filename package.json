@@ -1,0 +1,39 @@
+{
+  "name": "safe-env-sync",
+  "version": "1.0.0",
+  "description": "Environment validation and synchronization toolkit",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx src/test.ts",
+    "cli": "tsx src/cli/index.ts",
+    "build": "tsc"
+  },
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "safe-env-sync": "./dist/cli/index.js"
+  },
+  "keywords": [
+    "env",
+    "dotenv",
+    "validation",
+    "cli",
+    "typescript",
+    "nodejs"
+  ],
+  "author": "Jogendra Parmar",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3"
+  }
+}
