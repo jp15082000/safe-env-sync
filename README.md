@@ -1,4 +1,5 @@
 # safe-env-sync
+<<<<<<< HEAD
 
 Environment validation and synchronization toolkit for Node.js applications.
 
@@ -93,3 +94,6 @@ NODE_ENV=development
 ## License
 
 MIT
+=======
+Environment validation and synchronization toolkit
+>>>>>>> fa954ea1d0a9bb5149f0377847d147f32caab1ad
