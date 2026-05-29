@@ -1,78 +1,118 @@
 import dotenv from "dotenv";
-import chalk from "chalk";
+
 import { EnvSchema } from "../types/env.js";
+import { ValidationResult } from "../types/result.js";
+import { parseValue } from "./parseValue.js";
 
-dotenv.config();
+dotenv.config({
+  quiet: true,
+});
 
-export function validateEnv(schema: EnvSchema) {
+export function validateEnv(
+  schema: EnvSchema
+): ValidationResult {
   const parsedEnv: Record<string, any> = {};
-  const errors: string[] = [];
+
+  const issues: ValidationResult["issues"] = [];
 
   for (const key in schema) {
-    const config = schema[key];
+    const rules = schema[key];
+
     const value = process.env[key];
 
-    // Required check
-    if (config.required && !value) {
-      errors.push(`Missing required variable: ${key}`);
+    // REQUIRED
+    if (rules.required && !value) {
+      issues.push({
+        key,
+        type: "missing",
+        message: "Missing required variable",
+      });
+
       continue;
     }
 
-    // Skip undefined optional values
-    if (!value) continue;
+    // Skip optional empty values
+    if (!value) {
+      continue;
+    }
 
-    // ENUM
-    if (config.type === "enum") {
-      if (!config.values.includes(value)) {
-        errors.push(
-          `${key} must be one of: ${config.values.join(", ")}`
-        );
-      } else {
-        parsedEnv[key] = value;
+    // ENUM VALIDATION
+    if (rules.type === "enum") {
+      if (!rules.values.includes(value)) {
+        issues.push({
+          key,
+          type: "invalid",
+          message: `Must be one of: ${rules.values.join(
+            ", "
+          )}`,
+        });
+
+        continue;
       }
 
+      parsedEnv[key] = parseValue(
+        value,
+        rules.type
+      );
+
       continue;
     }
 
-    // NUMBER
-    if (config.type === "number") {
+    // NUMBER VALIDATION
+    if (rules.type === "number") {
       const num = Number(value);
 
       if (isNaN(num)) {
-        errors.push(`${key} must be a valid number`);
-      } else {
-        parsedEnv[key] = num;
+        issues.push({
+          key,
+          type: "invalid",
+          message: "Must be a valid number",
+        });
+
+        continue;
       }
+
+      parsedEnv[key] = parseValue(
+        value,
+        rules.type
+      );
 
       continue;
     }
 
-    // BOOLEAN
-    if (config.type === "boolean") {
-      if (value !== "true" && value !== "false") {
-        errors.push(`${key} must be true or false`);
-      } else {
-        parsedEnv[key] = value === "true";
+    // BOOLEAN VALIDATION
+    if (rules.type === "boolean") {
+      if (
+        value !== "true" &&
+        value !== "false"
+      ) {
+        issues.push({
+          key,
+          type: "invalid",
+          message: "Must be true or false",
+        });
+
+        continue;
       }
+
+      parsedEnv[key] = parseValue(
+        value,
+        rules.type
+      );
 
       continue;
     }
 
     // STRING
-    parsedEnv[key] = value;
+    parsedEnv[key] = parseValue(
+      value,
+      rules.type
+    );
   }
 
-  if (errors.length > 0) {
-    console.log(chalk.red("\n❌ ENV VALIDATION FAILED\n"));
-
-    errors.forEach((err) => {
-      console.log(chalk.yellow(`• ${err}`));
-    });
-
-    process.exit(1);
-  }
-
-  console.log(chalk.green("\n✅ Environment validated successfully\n"));
-
-  return parsedEnv;
+  return {
+    success: issues.length === 0,
+    parsedEnv,
+    issues,
+  };
 }
